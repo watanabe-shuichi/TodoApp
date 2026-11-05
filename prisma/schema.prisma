@@ -1,0 +1,24 @@
+// Prisma schema: https://pris.ly/d/prisma-schema
+// 接続 URL は prisma.config.ts で設定する（Prisma 7 では schema に url を書かない）
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Todo {
+  // DB 側で生成するので、Supabase クライアントから直接 insert しても ID が付く
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  title       String
+  isCompleted Boolean  @default(false) @map("is_completed")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // RLS で user_id による絞り込みが毎回入るのでインデックスを張る
+  @@index([userId])
+  @@map("todos")
+}
